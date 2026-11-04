@@ -1,0 +1,8 @@
+# everything the crew writes while it works: tickets, reports, screenshots, the watchdog's key
+state/
+# the crew's working copies of the Kartavya site
+work/
+agents/
+node_modules/
+.switch/
+*.log

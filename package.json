@@ -1,0 +1,21 @@
+{
+  "name": "kartavya-crew",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Kartavya's team-chat crew on Switch: feedback becomes a ticket, a fix, a check and a release, and a person approves every release.",
+  "license": "MIT",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "test": "node --test",
+    "doctor": "node tools/setup.mjs --doctor",
+    "setup": "node tools/setup.mjs",
+    "ticket": "node tools/ticket.mjs",
+    "check": "node tools/check.mjs",
+    "health": "node tools/health.mjs",
+    "notes": "node tools/notes.mjs",
+    "ship": "node tools/ship.mjs",
+    "watchdog:register": "node watchdog/register.mjs",
+    "watchdog": "node watchdog/watchdog.mjs"
+  }
+}
