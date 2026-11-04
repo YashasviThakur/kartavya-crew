@@ -61,14 +61,18 @@ export async function launch({ tmpRoot }) {
     const s = (m, p) => send(m, p, sessionId);
     const on = fn => { const l = m => { if (m.sessionId === sessionId) fn(m); }; listeners.add(l); return () => listeners.delete(l); };
     const page = { errors: [], failed: [], bytes: 0, requests: 0 };
+    // a film streams a different amount on every visit, so media is left out of the page's weight
+    const media = new Set();
     on(m => {
       const p = m.params;
+      if (m.method === 'Network.requestWillBeSent' && p.type === 'Media') media.add(p.requestId);
+      if (m.method === 'Network.responseReceived' && p.type === 'Media') media.add(p.requestId);
       if (m.method === 'Runtime.exceptionThrown') page.errors.push(p.exceptionDetails.exception?.description?.split('\n')[0] || p.exceptionDetails.text);
       else if (m.method === 'Runtime.consoleAPICalled' && (p.type === 'error' || p.type === 'assert')) page.errors.push(p.args.map(a => a.value ?? a.description ?? '').join(' ').slice(0, 300));
       else if (m.method === 'Log.entryAdded' && p.entry.level === 'error' && !/favicon/.test(p.entry.url || '')) page.errors.push(`${p.entry.text}${p.entry.url ? ` (${p.entry.url})` : ''}`.slice(0, 300));
       else if (m.method === 'Network.responseReceived' && p.response.status >= 400 && !/favicon/.test(p.response.url)) page.failed.push(`${p.response.status} ${p.response.url}`);
       else if (m.method === 'Network.loadingFailed' && !p.canceled && !QUIET_FAILURE.test(p.errorText)) page.failed.push(`${p.errorText} (${p.type})`);
-      else if (m.method === 'Network.loadingFinished') { page.bytes += p.encodedDataLength || 0; page.requests += 1; }
+      else if (m.method === 'Network.loadingFinished' && !media.has(p.requestId)) { page.bytes += p.encodedDataLength || 0; page.requests += 1; }
     });
     await s('Page.enable'); await s('Runtime.enable'); await s('Network.enable'); await s('Log.enable');
     await s('Network.setCacheDisabled', { cacheDisabled: true });

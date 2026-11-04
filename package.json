@@ -7,7 +7,7 @@
   "license": "MIT",
   "engines": { "node": ">=22" },
   "scripts": {
-    "test": "node --test",
+    "test": "node --test \"test/*.test.js\"",
     "doctor": "node tools/setup.mjs --doctor",
     "setup": "node tools/setup.mjs",
     "ticket": "node tools/ticket.mjs",

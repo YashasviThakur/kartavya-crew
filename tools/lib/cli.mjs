@@ -13,9 +13,11 @@ export function run(cmd, args = [], { cwd, env = {}, timeoutMs = 10 * 60_000, in
     const started = Date.now();
     // npm and npx are .cmd files on Windows and need a shell; everything else runs directly
     const shell = process.platform === 'win32' && /^(npm|npx)$/.test(cmd);
-    const child = spawn(cmd, args.map(a => (shell && /[\s"&|<>^]/.test(a) ? `"${a.replace(/"/g, '\\"')}"` : a)), {
-      cwd, shell, env: { ...process.env, ...GIT_ENV, ...env }, windowsHide: true,
-    });
+    const opts = { cwd, env: { ...process.env, ...GIT_ENV, ...env }, windowsHide: true };
+    // through a shell, the whole command goes as one string (only the crew's own fixed npm arguments go this way)
+    const child = shell
+      ? spawn([cmd, ...args.map(a => (/[\s"&|<>^]/.test(a) ? `"${a.replace(/"/g, '\\"')}"` : a))].join(' '), { ...opts, shell: true })
+      : spawn(cmd, args, opts);
     let stdout = '', stderr = '';
     child.stdout.on('data', d => { stdout += d; });
     child.stderr.on('data', d => { stderr += d; });

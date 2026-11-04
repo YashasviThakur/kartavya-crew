@@ -82,7 +82,7 @@ Docker · Google Chrome · [Switch Console](https://github.com/sandbox-quantum/s
 git clone https://github.com/YashasviThakur/kartavya-crew && cd kartavya-crew
 npm run doctor            # what is installed and running
 npm run setup             # the crew's own copy of the site, and the agents' folders
-npm test                  # 33 tests, including real headless-Chrome checks
+npm test                  # the crew's tests, including real headless-Chrome checks
 ```
 
 1. **Switch Console:** Add a server → Run a server on this computer → Start. Sign in to Mattermost.
