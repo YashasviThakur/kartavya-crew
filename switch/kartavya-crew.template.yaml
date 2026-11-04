@@ -5,6 +5,7 @@
 # custom agent on the agent protocol) reports the live site's health into kartavya-ops; the producer keeps
 # the promo films in step with the site.
 #
+# Every agent runs on Claude Code (provider: claude), so Console never has to guess one.
 # Use it in Switch Console: Templates, Import (or paste this file), fill the form, Create.
 # Before that, run  node tools/setup.mjs  so the working folders below exist.
 version: 1
@@ -29,11 +30,6 @@ params:
     description: Where finished films are saved
     default: "E:/Kartavya/Videos"
     input: advanced
-  provider:
-    type: provider
-    description: The coding agent behind every crew member. The first one installed is chosen.
-    default: [claude, codex, opencode]
-    input: advanced
   location:
     type: location
     description: The machine the crew runs on.
@@ -52,7 +48,7 @@ agents:
     display_name: Kartavya triage
     description: Turns feedback about thekartavya.com into tickets and hands them on
     addressing: anyone
-    provider: "{provider}"
+    provider: claude
     location: "{location}"
     directory: "{crew}/agents/triager"
     instructions: |
@@ -88,7 +84,7 @@ agents:
     display_name: Kartavya builder
     description: Makes the fix for a ticket on its own branch of the Kartavya site
     addressing: owner-agents
-    provider: "{provider}"
+    provider: claude
     location: "{location}"
     directory: "{crew}/work/builder"
     instructions: |
@@ -119,7 +115,7 @@ agents:
     display_name: Kartavya checker
     description: Checks a fix against main on phone, tablet and desktop before anyone may release it
     addressing: owner-agents
-    provider: "{provider}"
+    provider: claude
     location: "{location}"
     directory: "{crew}/agents/checker"
     instructions: |
@@ -146,7 +142,7 @@ agents:
     display_name: Kartavya release manager
     description: Releases a checked fix, only when the owner says so, and writes the release note
     addressing: owner
-    provider: "{provider}"
+    provider: claude
     location: "{location}"
     directory: "{crew}/agents/shipper"
     instructions: |
@@ -177,7 +173,7 @@ agents:
     display_name: Kartavya producer
     description: Keeps the promo films in step with the website and re-renders them on request
     addressing: owner-agents
-    provider: "{provider}"
+    provider: claude
     location: "{location}"
     directory: "{films}"
     instructions: |
