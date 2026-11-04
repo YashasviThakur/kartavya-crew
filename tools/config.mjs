@@ -17,7 +17,11 @@ export const TMP = join(STATE, 'tmp');        // Chrome profiles and other scrat
 
 // the founder's own checkout on the USB drive: cloned once by setup, never written to
 export const SOURCE_REPO = env('KV_SOURCE_REPO', 'E:/Kartavya/Website repo (kartvaya)');
-export const GITHUB_REPO = process.env.KV_GITHUB_REPO || 'YashasviThakur/kartavya';
+// The crew releases into a private sandbox copy of the site. The live repo (which deploys thekartavya.com)
+// is only ever read: setup makes its push address unusable, a pre-push hook refuses it, and ship.mjs
+// refuses to run against it.
+export const LIVE_REPO = 'YashasviThakur/kartavya';
+export const GITHUB_REPO = process.env.KV_GITHUB_REPO || 'YashasviThakur/kartavya-crew-sandbox';
 export const LIVE = process.env.KV_LIVE || 'https://www.thekartavya.com';
 export const API = process.env.KV_API || 'https://2kzzq9b4bi.execute-api.ap-south-1.amazonaws.com';
 export const DEMO = process.env.KV_DEMO || 'https://demokartavya.vercel.app';

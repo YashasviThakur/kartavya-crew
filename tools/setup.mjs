@@ -8,10 +8,10 @@
 //     work/base     where check.mjs puts main, for the "before" screenshots
 //     agents/<name> the working folders of the agents that do not edit the site
 // The founder's own checkout is only read, once, to clone it.
-import { existsSync, mkdirSync, writeFileSync, statfsSync } from 'node:fs';
+import { existsSync, mkdirSync, writeFileSync, statfsSync, copyFileSync, chmodSync } from 'node:fs';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
-import { CREW, STATE, WORK, REPO, BUILDER, CHECKER, BASE, TMP, SOURCE_REPO, GITHUB_REPO, FILMS } from './config.mjs';
+import { CREW, STATE, WORK, REPO, BUILDER, CHECKER, BASE, TMP, SOURCE_REPO, GITHUB_REPO, LIVE_REPO, FILMS } from './config.mjs';
 import { run, git, gitOut, isMain } from './lib/cli.mjs';
 import { chromePath } from './lib/cdp.mjs';
 
@@ -44,6 +44,35 @@ const AGENT_NOTES = {
   shipper: 'kv-shipper works from here. Its tools: node ../../tools/ship.mjs KV-### --approved-by <handle>, node ../../tools/notes.mjs --since 7, node ../../tools/health.mjs.',
 };
 
+// origin = the sandbox (fetch and push); live = the real site's repo, fetch only; a pre-push hook that
+// refuses the live repo whatever remote or URL a push names. Safe to run again.
+async function wireRemotes() {
+  const remotes = (await gitOut(REPO, 'remote')).split('\n').filter(Boolean);
+  const liveUrl = `https://github.com/${LIVE_REPO}.git`, sandboxUrl = `https://github.com/${GITHUB_REPO}.git`;
+  if (remotes.includes('origin') && /YashasviThakur\/kartavya(\.git)?$/i.test((await gitOut(REPO, 'remote', 'get-url', 'origin')))) {
+    if (!remotes.includes('live')) { await gitOut(REPO, 'remote', 'rename', 'origin', 'live'); remotes.splice(remotes.indexOf('origin'), 1, 'live'); }
+    else { await gitOut(REPO, 'remote', 'remove', 'origin'); remotes.splice(remotes.indexOf('origin'), 1); }
+  }
+  if (!remotes.includes('live')) await gitOut(REPO, 'remote', 'add', 'live', liveUrl);
+  await gitOut(REPO, 'remote', 'set-url', 'live', liveUrl);
+  await gitOut(REPO, 'remote', 'set-url', '--push', 'live', 'BLOCKED: the live Kartavya repo is read-only for the crew');
+  if (!remotes.includes('origin')) await gitOut(REPO, 'remote', 'add', 'origin', sandboxUrl);
+  else await gitOut(REPO, 'remote', 'set-url', 'origin', sandboxUrl);
+  await git(REPO, 'remote', 'set-url', '--delete', '--push', 'origin', '.*'); // no separate push address on origin
+  const hooks = join(await gitOut(REPO, 'rev-parse', '--path-format=absolute', '--git-common-dir'), 'hooks');
+  mkdirSync(hooks, { recursive: true });
+  copyFileSync(join(CREW, 'tools', 'pre-push-guard.sh'), join(hooks, 'pre-push'));
+  try { chmodSync(join(hooks, 'pre-push'), 0o755); } catch {}
+  // a brand-new sandbox starts as a copy of the live site's main
+  await git(REPO, 'fetch', '--quiet', 'live');
+  const sandboxMain = (await git(REPO, 'ls-remote', 'origin', 'refs/heads/main')).stdout.trim();
+  if (!sandboxMain) {
+    console.log(`seeding ${GITHUB_REPO} with the live site's main…`);
+    await gitOut(REPO, 'push', '--quiet', 'origin', 'refs/remotes/live/main:refs/heads/main');
+  }
+  console.log(`remotes: origin -> ${GITHUB_REPO} (releases go here) · live -> ${LIVE_REPO} (read only)`);
+}
+
 export async function setup() {
   for (const d of [STATE, TMP, WORK]) mkdirSync(d, { recursive: true });
   for (const [name, note] of Object.entries(AGENT_NOTES)) {
@@ -56,14 +85,15 @@ export async function setup() {
     console.log(`cloning ${SOURCE_REPO} -> ${REPO} (read only on the source)…`);
     const c = await run('git', ['clone', '--quiet', '--no-hardlinks', SOURCE_REPO, REPO], { timeoutMs: 20 * 60_000 });
     if (c.code !== 0) throw new Error(`clone failed: ${c.stderr.trim()}`);
-    await gitOut(REPO, 'remote', 'set-url', 'origin', `https://github.com/${GITHUB_REPO}.git`);
+    await gitOut(REPO, 'remote', 'remove', 'origin');
     // commits made by the crew carry the founder's own name and email, exactly as in their checkout
     for (const k of ['user.name', 'user.email']) {
       const v = (await git(SOURCE_REPO, 'config', k)).stdout.trim() || (await git(homedir(), 'config', '--global', k)).stdout.trim();
       if (v) await gitOut(REPO, 'config', k, v);
     }
   }
-  console.log('fetching main from GitHub…');
+  await wireRemotes();
+  console.log('fetching main from the sandbox…');
   const f = await git(REPO, 'fetch', '--quiet', 'origin');
   if (f.code !== 0) console.log(`  could not reach GitHub (${f.stderr.trim().split('\n').pop()}); using the main the clone came with`);
   const main = (await git(REPO, 'rev-parse', '--verify', 'origin/main')).code === 0 ? 'origin/main' : 'main';

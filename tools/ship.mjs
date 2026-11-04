@@ -1,14 +1,24 @@
 #!/usr/bin/env node
-// kv-shipper's only way to release: what goes live is exactly the commit kv-checker passed.
+// kv-shipper's only way to release: what ships is exactly the commit kv-checker passed, and it ships into
+// the sandbox repo (GITHUB_REPO), never the live one.
 //   node tools/ship.mjs KV-001 --approved-by yashasvi             push, open a pull request, wait for GitHub's checks, squash-merge
 //   node tools/ship.mjs KV-001 --approved-by yashasvi --dry-run   say what would happen, change nothing
 // It refuses when the check did not pass, when the branch got new commits after the check, or when main
 // moved since the check (then the fix needs a fresh check against the new main).
 import { parseArgs } from 'node:util';
 import { existsSync, readFileSync } from 'node:fs';
-import { REPO, GITHUB_REPO } from './config.mjs';
+import { REPO, GITHUB_REPO, LIVE_REPO } from './config.mjs';
 import { get, update } from './lib/store.mjs';
 import { run, git, gitOut, isMain } from './lib/cli.mjs';
+
+// Pure: is this a place the crew may release into? Never the live repo, by name or by the push address.
+export function targetProblem({ repo, pushUrl }) {
+  const live = new RegExp(`github\\.com[/:]${LIVE_REPO.replace('/', '\\/')}(\\.git)?/?$`, 'i');
+  if (repo.toLowerCase() === LIVE_REPO.toLowerCase()) return `refusing to release into the live repo ${LIVE_REPO}: the crew releases into its sandbox only`;
+  if (live.test(pushUrl ?? '')) return `origin in ${REPO} pushes to the live repo (${pushUrl}): run node tools/setup.mjs to point it at the sandbox`;
+  if (!new RegExp(`github\\.com[/:]${repo.replace('/', '\\/')}(\\.git)?/?$`, 'i').test(pushUrl ?? '')) return `origin in ${REPO} pushes to ${pushUrl || 'nowhere'}, not ${repo}: run node tools/setup.mjs`;
+  return null;
+}
 
 // Pure: may this ticket ship right now? Returns { ok, reason }.
 export function shipDecision({ ticket, report, branchHead, mainNow, approvedBy }) {
@@ -43,6 +53,9 @@ export function prBody({ ticket, report, approvedBy }) {
 const gh = (...args) => run('gh', args, { cwd: REPO, timeoutMs: 30 * 60_000 });
 
 export async function ship({ id, approvedBy, dryRun = false, waitCi = true, log = m => console.error(m) }) {
+  const pushUrl = (await git(REPO, 'remote', 'get-url', '--push', 'origin')).stdout.trim();
+  const wrong = targetProblem({ repo: GITHUB_REPO, pushUrl });
+  if (wrong) return { shipped: false, reason: wrong };
   const ticket = get(id);
   const report = ticket.report && existsSync(ticket.report) ? JSON.parse(readFileSync(ticket.report, 'utf8')) : null;
   await git(REPO, 'fetch', '--quiet', 'origin');

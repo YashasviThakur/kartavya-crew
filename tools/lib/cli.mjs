@@ -32,3 +32,11 @@ export async function gitOut(cwd, ...args) {
   if (r.code !== 0) throw new Error(`git ${args.join(' ')} failed: ${(r.stderr || r.stdout).trim()}`);
   return r.stdout.trim();
 }
+
+// Git Bash on Windows rewrites an argument like "/how-it-works" into "C:/Program Files/Git/how-it-works"
+// before node sees it. Turn such a value back into the site path it was.
+export function sitePath(v) {
+  const s = String(v ?? '').trim().replace(/\\/g, '/');
+  const m = s.match(/^[A-Za-z]:\/(?:.*?\/)?Git(\/.*)?$/i);
+  return m ? (m[1] || '/') : s;
+}

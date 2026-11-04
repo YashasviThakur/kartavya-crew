@@ -39,3 +39,13 @@ test('release-note material lists what shipped this week by page, and says so wh
   assert.deepEqual(shippedSince(tickets, 7, now).map(x => x.id), ['KV-002', 'KV-001']);
   assert.equal(notesMaterial([], 7), 'Nothing shipped in the last 7 days.');
 });
+
+test('it never releases into the live Kartavya repo, by name or by push address', async () => {
+  const { targetProblem } = await import('../tools/ship.mjs');
+  const sandbox = 'YashasviThakur/kartavya-crew-sandbox';
+  assert.equal(targetProblem({ repo: sandbox, pushUrl: 'https://github.com/YashasviThakur/kartavya-crew-sandbox.git' }), null);
+  assert.match(targetProblem({ repo: 'YashasviThakur/kartavya', pushUrl: 'https://github.com/YashasviThakur/kartavya.git' }), /refusing to release into the live repo/);
+  assert.match(targetProblem({ repo: sandbox, pushUrl: 'https://github.com/YashasviThakur/kartavya.git' }), /pushes to the live repo/);
+  assert.match(targetProblem({ repo: sandbox, pushUrl: 'git@github.com:YashasviThakur/kartavya.git' }), /pushes to the live repo/);
+  assert.match(targetProblem({ repo: sandbox, pushUrl: 'https://github.com/someone/else.git' }), /not YashasviThakur\/kartavya-crew-sandbox/);
+});

@@ -10,7 +10,7 @@ import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { STATE, REPO, CHECKER, BASE, TMP, SIZES, FORBIDDEN } from './config.mjs';
 import { get, update } from './lib/store.mjs';
-import { run, git, gitOut, isMain } from './lib/cli.mjs';
+import { run, git, gitOut, isMain, sitePath } from './lib/cli.mjs';
 import { launch, sleep } from './lib/cdp.mjs';
 import { serveSite } from './lib/serve.mjs';
 import * as pc from './lib/pagecheck.mjs';
@@ -56,10 +56,17 @@ async function e2eCheck(log) {
   log('running the browser journeys (a few minutes)…');
   const r = await run('npm', ['run', 'test:e2e'], { cwd: CHECKER, timeoutMs: 20 * 60_000, env: { TMP, TEMP: TMP } });
   const out = `${r.stdout}\n${r.stderr}`;
-  const tally = out.match(/(\d+)\s+(?:journeys?|checks?)\s+pass/i) || out.match(/pass(?:ed)?\D{0,3}(\d+)/i);
-  const failing = [...out.matchAll(/^\s*(?:✖|FAIL|not ok)\s+(.+)$/gim)].map(m => m[1].trim()).slice(0, 10);
-  const ok = r.code === 0;
-  return { name: 'Browser journeys', status: ok ? 'pass' : 'fail', summary: ok ? (tally ? `${tally[1]} pass` : 'all pass') : `${failing.length || 'some'} failed`, details: ok ? [] : (failing.length ? failing : [out.trim().split('\n').slice(-3).join(' ')]) };
+  const e = parseE2E(out);
+  const ok = r.code === 0 && e.failed === 0;
+  return { name: 'Browser journeys', status: ok ? 'pass' : 'fail', summary: e.passed !== null ? `${e.passed} pass${e.failed ? `, ${e.failed} fail` : ''}` : `exit code ${r.code}`, details: ok ? [] : (e.failing.length ? e.failing : [out.trim().split('\n').slice(-3).join(' ')]) };
+}
+
+// the site's e2e/run.mjs prints "  FAIL  <journey>  ->  <why>" per failure, then "<n> passed, <m> failed",
+// then each failure again as "[size] <journey>: <why>"
+export function parseE2E(out) {
+  const t = out.match(/^(\d+) passed, (\d+) failed$/m);
+  const failing = [...out.matchAll(/^\[(\w+)\] (.+)$/gm)].map(m => `${m[1]}: ${m[2]}`);
+  return { passed: t ? Number(t[1]) : null, failed: t ? Number(t[2]) : null, failing: failing.slice(0, 10) };
 }
 
 // open one page on one side; scroll the changed part into view if we know what it is
@@ -178,7 +185,7 @@ export async function main(argv) {
   const t = v.ticket ? get(v.ticket) : null;
   const branch = v.branch ?? t?.branch;
   if (!branch) throw new Error(t ? `${t.id} has no branch yet: kv-builder sets it when the fix is ready` : 'give --ticket KV-### or --branch <name>');
-  const pages = (v.pages ?? t?.page ?? '/').split(',').map(s => s.trim()).filter(Boolean);
+  const pages = (v.pages ?? t?.page ?? '/').split(',').map(s => sitePath(s.trim())).filter(Boolean);
   const sizes = (v.sizes ? v.sizes.split(',') : t?.sizes ?? Object.keys(SIZES)).map(s => s.trim()).filter(s => SIZES[s]);
   const { report, summary, outDir } = await checkBranch({ ticket: t?.id, branch, pages, focus: v.focus ?? t?.focus, sizes, unit: v.unit !== 'off', e2e: v.e2e !== 'off', baseRef: v.base });
   if (t) update(t.id, { status: report.verdict === 'pass' ? 'passed' : 'failed', sha: report.sha, report: join(outDir, 'report.json') }, { by: 'kv-checker', note: `check ${report.verdict}` });

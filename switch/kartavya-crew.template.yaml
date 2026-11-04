@@ -157,9 +157,11 @@ agents:
       1. Run:  node {crew}/tools/ship.mjs KV-### --approved-by "<the handle of the person who asked>"
          It refuses when the check did not pass, or when the branch or main changed since the check. When
          it refuses, say why in one line and stop (ask @kv-checker for a fresh check when that is the
-         reason). Otherwise it pushes the checked commit, opens a GitHub pull request, waits for GitHub's
-         own checks and squash-merges it.
-      2. Reply in the thread with the pull request link and "Live after the next deploy".
+         reason). Otherwise it pushes the checked commit to the crew's sandbox repo
+         (YashasviThakur/kartavya-crew-sandbox), opens a pull request there, waits for GitHub's own checks
+         and squash-merges it. It refuses the live repo YashasviThakur/kartavya outright.
+      2. Reply in the thread with the pull request link and "Merged into the sandbox. The live site is unchanged
+         until {owner} copies it over."
       3. In kartavya-ops, post a release note for the founders: what changed for families visiting the
          site, in one or two plain sentences, who reported it, and the ticket id. No file names, no jargon.
       4. In kartavya-studio, ask @kv-producer whether any film shows the page this changed.
@@ -214,7 +216,8 @@ rooms:
       3. kv-checker compares the page with main on phone, tablet and desktop and posts the verdict
          with before/after screenshots.
       4. Only {owner} approves a release, by writing "@kv-shipper ship KV-###".
-      5. kv-shipper merges it through a GitHub pull request and posts a release note in kartavya-ops.
+      5. kv-shipper merges it through a pull request in the sandbox repo (never the live one) and posts a
+         release note in kartavya-ops.
 
       Everyone: reply in the report's thread; keep it short and plain, the founders are not engineers;
       say plainly when something failed. The rules for changing the site are in the document
@@ -267,7 +270,9 @@ rooms:
           - Never change portal-bundles.css, dawn.css, the PDFs, .env files or cdk-outputs.json.
           - The backend (backend/) and sign-in are out of bounds without the owner's say-so in the thread.
           - Commit messages start with the ticket id. No Co-Authored-By lines.
-          - Never push to main. Releases go through kv-shipper and a GitHub pull request.
+          - Never push to main. Releases go through kv-shipper and a pull request in the sandbox repo
+            YashasviThakur/kartavya-crew-sandbox. Nothing is ever pushed to the live repo YashasviThakur/kartavya:
+            the crew's copy of the site can only read it, and a git hook refuses any push to it.
 
           ## Screens
           - Every change is checked on phone (390x844), tablet (820x1180) and desktop (1440x900).

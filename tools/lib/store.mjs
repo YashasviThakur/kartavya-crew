@@ -4,6 +4,7 @@
 import { readFileSync, writeFileSync, renameSync, mkdirSync, openSync, closeSync, unlinkSync, existsSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { STATE } from '../config.mjs';
+import { sitePath } from './cli.mjs';
 
 export const STATUSES = ['new', 'needs-info', 'building', 'checking', 'passed', 'failed', 'shipped', 'closed'];
 export const KINDS = ['bug', 'change', 'question', 'incident'];
@@ -57,7 +58,7 @@ const sizesOf = v => {
   return list.length ? [...new Set(list)] : ['phone', 'tablet', 'desktop'];
 };
 const pageOf = v => {
-  const p = clean(v, 200) ?? '/';
+  const p = sitePath(clean(v, 200) ?? '/') || '/';
   if (!p.startsWith('/')) throw new Error(`a page is a path on the site, like / or /how-it-works (got ${p})`);
   return p;
 };

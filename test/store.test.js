@@ -62,3 +62,13 @@ test('the board shows what waits for a person first, and recent releases', () =>
     assert.match(b, /\*\*KV-002\*\* B · \/ · reported by unknown · \[pull request\]\(https:\/\/github.com\/x\/y\/pull\/9\)/);
   } finally { done(); }
 });
+
+test('a page path that Git Bash rewrote into a Windows folder is read back as the site path', async () => {
+  const { sitePath } = await import('../tools/lib/cli.mjs');
+  assert.equal(sitePath('C:/Program Files/Git/'), '/');
+  assert.equal(sitePath('C:/Program Files/Git/how-it-works'), '/how-it-works');
+  assert.equal(sitePath(String.raw`C:\Program Files\Git\policies`), '/policies');
+  assert.equal(sitePath('/login'), '/login');
+  const { dir, done } = scratch('store');
+  try { assert.equal(create({ title: 'x', page: 'C:/Program Files/Git/' }, { dir }).page, '/'); } finally { done(); }
+});

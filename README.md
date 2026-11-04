@@ -3,7 +3,8 @@
 **A website team made of people and AI agents, living in a chat room.** The founders of
 [Kartavya](https://www.thekartavya.com) (camera-free elder care at home) post what they saw on their website
 (a screenshot, a sentence) and an AI crew turns it into a ticket, a fix, a check on phone, tablet and
-desktop, and a release. Nothing goes live until the owner says so in the room.
+desktop, and a release. Nothing ships until the owner says so in the room, and releases land in a private **sandbox copy** of the
+site's repo: the crew can read the live repo but never push to it.
 
 Built on [Switch](https://github.com/sandbox-quantum/switch) for the WeMakeDevs **Flip the Switch** hackathon
 (Track 1, Best Business Workflow).
@@ -24,7 +25,7 @@ Built on [Switch](https://github.com/sandbox-quantum/switch) for the WeMakeDevs 
  owner: "@kv-shipper ship KV-012"   ◄── the only way anything ships
     │
     ▼
- kv-shipper ── pushes exactly the checked commit, opens a pull request, waits for GitHub's checks,
+ kv-shipper ── pushes exactly the checked commit to the sandbox repo, opens a pull request, waits for CI,
     │          squash-merges, posts a plain-English release note ─────────────────── kartavya-ops
     ▼
  kv-producer ─ "the Plans film shows that card: it is now out of date" ───────────── kartavya-studio
@@ -57,7 +58,7 @@ Take Switch away and this is five disconnected scripts. Switch is what makes the
 | `kv-triager` | Claude Code, via Switch Console | Reads feedback and screenshots, opens tickets (`tools/ticket.mjs`), asks at most two questions, hands off, keeps the Ticket board current. Sends hosting problems (like a paused deployment) to the owner with what to do. |
 | `kv-builder` | Claude Code, in its own git worktree of the site | Smallest fix on a `crew/kv-###-…` branch, following the house rules (Hindi for every new line, no forbidden files, CSP hashes untouched). Commits, never pushes. |
 | `kv-checker` | Claude Code + [`tools/check.mjs`](tools/check.mjs) | Puts the branch and main side by side and checks them in headless Chrome (no packages: Node talks to Chrome's DevTools protocol directly). Fails on new sideways scrolling, broken images, console errors, lost search tags, **English without Hindi**, failing unit tests or journeys, forbidden files or a Claude co-author line. Posts before/after screenshots. |
-| `kv-shipper` | Claude Code + [`tools/ship.mjs`](tools/ship.mjs) | Owner-only. Refuses unless the check passed **and** neither the branch nor main moved since. Pushes the checked commit, opens a PR, waits for CI, squash-merges, writes the release note. Weekly notes from `tools/notes.mjs`. |
+| `kv-shipper` | Claude Code + [`tools/ship.mjs`](tools/ship.mjs) | Owner-only. Refuses unless the check passed **and** neither the branch nor main moved since. Pushes the checked commit to the sandbox repo, opens a PR, waits for CI, squash-merges, writes the release note. Weekly notes from `tools/notes.mjs`. |
 | `kv-producer` | Claude Code with the HyperFrames skills | Says which promo films show a changed page; re-renders one only when the owner asks. |
 | `kv-watchdog` | Node, [`watchdog/`](watchdog) | Always-on custom agent. Runs [`tools/health.mjs`](tools/health.mjs) (pages, Vercel pause, 404 page, robots/sitemap/llms.txt, security headers, search tags, certificate, the AWS API, the demo site) every 6 hours, posts on change and every morning, opens incidents through kv-triager. |
 
@@ -66,6 +67,9 @@ Take Switch away and this is five disconnected scripts. Switch is what makes the
 - **One person releases.** Only the owner can address `kv-shipper`; `ship.mjs` also requires a passing check of the exact commit, and refuses if anything moved since.
 - **What ships is what was checked.** The shipper pushes the checked SHA itself; the builder has no push step.
 - **GitHub still gets the last word.** Every release is a pull request that waits for the repo's own CI.
+- **The live site can't be touched.** Releases go to `YashasviThakur/kartavya-crew-sandbox`. In the crew's copy of the site the live repo is a
+  fetch-only remote with a blocked push address, a `pre-push` hook ([`tools/pre-push-guard.sh`](tools/pre-push-guard.sh)) refuses any push to it,
+  and `ship.mjs` refuses to run against it. Copying a release to the live site stays a person's decision, outside the crew.
 - **The founder's checkout is never touched.** The crew clones it once into `work/` and works there.
 - **Read-only checks.** The health check touches no data (the API is probed with a CORS preflight).
 

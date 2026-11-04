@@ -77,3 +77,10 @@ test('the chat summary leads with the verdict and lists what to look at', () => 
   assert.equal(pc.verdictOf([{ status: 'pass' }, { status: 'warn' }]), 'pass');
   assert.equal(pc.verdictOf([{ status: 'pass' }, { status: 'fail' }]), 'fail');
 });
+
+test('browser journey output is read the way the site\'s e2e/run.mjs prints it', async () => {
+  const { parseE2E } = await import('../tools/check.mjs');
+  const out = '\nphone\n  FAIL  Back from FAQs  ->  landed on /care\n\ntablet\n\n250 passed, 1 failed\n\n[phone] Back from FAQs: landed on /care\n';
+  assert.deepEqual(parseE2E(out), { passed: 250, failed: 1, failing: ['phone: Back from FAQs: landed on /care'] });
+  assert.deepEqual(parseE2E('\nphone\n\n251 passed, 0 failed\n'), { passed: 251, failed: 0, failing: [] });
+});
