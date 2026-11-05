@@ -114,7 +114,7 @@ if (isMain(import.meta.url)) {
     if (!id) throw new Error('usage: ship.mjs KV-### --approved-by <handle> [--dry-run]');
     const r = await ship({ id, approvedBy: v['approved-by'], dryRun: v['dry-run'], waitCi: !v['no-wait-ci'] });
     if (r.dryRun) console.log(`Would ship (${r.reason}):\n${r.steps.map(s => `- ${s}`).join('\n')}`);
-    else if (r.shipped) console.log(`Shipped ${id}: ${r.pr} (merged as ${r.merged.slice(0, 7)}). Live after the next deploy.`);
+    else if (r.shipped) console.log(`Shipped ${id}: ${r.pr} (merged as ${r.merged.slice(0, 7)} in the sandbox). The live site is unchanged until its owner copies the change over.`);
     else console.log(`Not shipped: ${r.reason}${r.pr ? `\nPull request: ${r.pr}` : ''}`);
     process.exit(r.shipped || r.dryRun ? 0 : 2);
   } catch (e) { console.error(e.message); process.exit(1); }

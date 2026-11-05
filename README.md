@@ -115,8 +115,10 @@ node tools/ship.mjs KV-001 --approved-by you --dry-run
   three rooms and took their roles; ticket **KV-001** went from a founder's report (the Hindi page's "Back"
   link stayed in English) through triage and a fix (`"Back": "वापस"`, commit on `crew/kv-001-hindi-back`) to a
   checker verdict of **PASS** (10/10 checks, 141 unit tests, 251 browser journeys).
-- **Not shipped:** KV-001 is waiting for the owner's `@kv-shipper ship KV-001`, as designed. The release path
-  (`tools/ship.mjs`) is covered by tests and refuses by itself when anything moved since the check.
+- **Shipped to the sandbox:** KV-001 went out as pull request #1 in the (private) sandbox repo
+  `YashasviThakur/kartavya-crew-sandbox` (squash-merged after both of its CI workflows passed), through `tools/ship.mjs` run by hand
+  with the owner's go-ahead, the same command kv-shipper runs. The live site was not touched. Going through the
+  room (`@kv-shipper ship KV-001`) has not been run live yet.
 - **Watchdog:** tested against a pretend Switch server that speaks the same protocol (registration, ping/pong,
   resume, threaded replies). It has not been registered on a live server yet.
 - **Switch Console note:** v0.40 fills `{params}` in a room's text but not in an agent's `instructions`, so the
