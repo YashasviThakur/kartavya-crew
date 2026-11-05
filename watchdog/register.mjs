@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Register kv-watchdog with your Switch server, once.
-//   node watchdog/register.mjs --api http://localhost:<port> --key <registration key>
+//   node watchdog/register.mjs [--api http://localhost:<port>]   (asks for the registration key)
 // --api is the agent bridge's base URL (GET /health on it answers 200; it is usually not the Gateway URL).
 // The registration key is created in the Gateway, API Keys page, type "registration".
 // Saves the agent's own API key to state/watchdog.json (git-ignored). Run it again with --overwrite to replace.
@@ -12,9 +12,19 @@ import { register, probe, SwitchAgent } from './switch.mjs';
 import { CONFIG } from './watchdog.mjs';
 import { NAME } from './logic.mjs';
 
-const { values: v } = parseArgs({ options: { api: { type: 'string' }, key: { type: 'string' }, overwrite: { type: 'boolean' } } });
+// Asks for the key when it isn't given, so it never has to sit in a command line or the shell's history.
+async function askKey() {
+  const { createInterface } = await import('node:readline/promises');
+  const rl = createInterface({ input: process.stdin, output: process.stdout });
+  const key = (await rl.question('Paste the registration key from the Gateway (API Keys), then press Enter: ')).trim();
+  rl.close();
+  return key;
+}
+
+const { values: v } = parseArgs({ options: { api: { type: 'string', default: 'http://localhost:51797' }, key: { type: 'string' }, overwrite: { type: 'boolean' } } });
 try {
-  if (!v.api || !v.key) throw new Error('usage: register.mjs --api <bridge base URL> --key <registration key>');
+  v.key ??= process.env.SWITCH_REGISTRATION_KEY || await askKey();
+  if (!v.key) throw new Error('no key given: create one in the Gateway, API Keys page, type "registration"');
   if (existsSync(CONFIG) && !v.overwrite) throw new Error(`${CONFIG} already exists. Use --overwrite to register again (the old key stops working).`);
   const status = await probe(v.api);
   if (status !== 200) throw new Error(`${v.api}/health answered ${status || 'nothing'}: that is not the agent bridge. Find its URL in Switch Console (Settings, Servers).`);

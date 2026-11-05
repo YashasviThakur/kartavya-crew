@@ -2,7 +2,7 @@
 // room names exists, every agent has what Switch Console needs to create it, and the release gate holds.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 
 const doc = readFileSync(new URL('../switch/kartavya-crew.template.yaml', import.meta.url), 'utf8');
 const blockOf = name => doc.slice(doc.indexOf(`  - name: ${name}\n`)).split(/\n {2}- name: /)[0];
@@ -29,9 +29,22 @@ test('the five agents exist, each with provider, location, directory, addressing
 test('only the owner can address the release manager, and it releases only through ship.mjs', () => {
   const s = blockOf('kv-shipper');
   assert.match(s, /addressing: owner\n/);
-  assert.match(s, /node \{crew\}\/tools\/ship\.mjs KV-### --approved-by/);
+  assert.match(s, /node \.\.\/\.\.\/tools\/ship\.mjs KV-### --approved-by/);
   assert.match(blockOf('kv-builder'), /Do not push/);
   assert.match(blockOf('kv-builder'), /addressing: owner-agents/);
+});
+
+// Switch Console v0.40 fills {params} in a room's text but not in an agent's `instructions`, so a brief that
+// used {crew} or {owner} reached the agent with the braces still in it. Briefs use relative paths instead.
+test('no agent brief depends on a {param}, and every tool path in one points at a real tool', () => {
+  const agents = ['kv-triager', 'kv-builder', 'kv-checker', 'kv-shipper', 'kv-producer'];
+  for (const a of agents) {
+    const brief = blockOf(a).slice(blockOf(a).indexOf('instructions: |'));
+    assert.deepEqual(brief.match(/\{[a-z_$]+\}/g) ?? [], [], `${a}'s brief has no {placeholder}`);
+    for (const m of brief.matchAll(/\.\.\/\.\.\/tools\/([a-z]+\.mjs)/g)) {
+      assert.ok(existsSync(new URL(`../tools/${m[1]}`, import.meta.url)), `${a} names tools/${m[1]}`);
+    }
+  }
 });
 
 test('the briefs carry the founder\'s rules', () => {

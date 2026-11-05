@@ -88,11 +88,16 @@ npm test                  # the crew's tests, including real headless-Chrome che
 1. **Switch Console:** Add a server → Run a server on this computer → Start. Sign in to Mattermost.
 2. **Templates → Import** `switch/kartavya-crew.template.yaml`, enter your chat handle as Owner, **Create**.
    The three rooms appear in Mattermost and each agent introduces itself.
-3. **The watchdog:** in the Gateway, API Keys, create a registration key, then
+3. **The watchdog (optional, the rest works without it):** in the Gateway's admin pages, API Keys, create a
+   registration key, then
    ```bash
-   node watchdog/register.mjs --api <agent bridge URL> --key <registration key>
+   node watchdog/register.mjs            # asks for the key; --api defaults to http://localhost:51797
    ```
+   (`--api` is the agent bridge, whose `/health` answers 200; Console shows its port under Settings, Servers.
+   The key can also come from `SWITCH_REGISTRATION_KEY`, so it never has to sit in a command line.)
    In `kartavya-ops` type `!invite-agent @kv-watchdog`, then `npm run watchdog`.
+   Console hides the Gateway admin pages when the local server runs natively; use the Docker runtime for
+   the server, or a registration key from whoever runs your Switch server.
 4. Post feedback in `kartavya-feedback`: `@kv-triager the plans section is hard to read on my phone` with a screenshot.
 
 The tools work on their own too:
@@ -103,6 +108,19 @@ node tools/check.mjs --ticket KV-001          # the full check, as kv-checker ru
 node tools/health.mjs                         # is thekartavya.com up?
 node tools/ship.mjs KV-001 --approved-by you --dry-run
 ```
+
+## What has run, and what hasn't
+
+- **Run on a live Switch server (Console 0.40, local server):** the template imported; all agents joined the
+  three rooms and took their roles; ticket **KV-001** went from a founder's report (the Hindi page's "Back"
+  link stayed in English) through triage and a fix (`"Back": "वापस"`, commit on `crew/kv-001-hindi-back`) to a
+  checker verdict of **PASS** (10/10 checks, 141 unit tests, 251 browser journeys).
+- **Not shipped:** KV-001 is waiting for the owner's `@kv-shipper ship KV-001`, as designed. The release path
+  (`tools/ship.mjs`) is covered by tests and refuses by itself when anything moved since the check.
+- **Watchdog:** tested against a pretend Switch server that speaks the same protocol (registration, ping/pong,
+  resume, threaded replies). It has not been registered on a live server yet.
+- **Switch Console note:** v0.40 fills `{params}` in a room's text but not in an agent's `instructions`, so the
+  agent briefs use paths relative to each agent's folder (`../../tools/…`) and never a `{param}`; a test keeps it so.
 
 ## Layout
 
