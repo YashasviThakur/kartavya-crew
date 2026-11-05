@@ -52,6 +52,12 @@ export function prBody({ ticket, report, approvedBy }) {
 
 const gh = (...args) => run('gh', args, { cwd: REPO, timeoutMs: 30 * 60_000 });
 
+// GitHub registers a pull request's checks a few seconds after the PR opens; asked too soon, gh answers
+// "no checks reported" and exits non-zero. That is "not started yet", not a failure: wait and ask again.
+export const noChecksYet = out => /no checks reported/i.test(out ?? '');
+const CHECKS_START_TRIES = 12, CHECKS_START_PAUSE_MS = 10_000;
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
 export async function ship({ id, approvedBy, dryRun = false, waitCi = true, log = m => console.error(m) }) {
   const pushUrl = (await git(REPO, 'remote', 'get-url', '--push', 'origin')).stdout.trim();
   const wrong = targetProblem({ repo: GITHUB_REPO, pushUrl });
@@ -77,7 +83,14 @@ export async function ship({ id, approvedBy, dryRun = false, waitCi = true, log 
   let pr = '';
   for (const [what, [cmd, ...args]] of steps) {
     log(`${what}…`);
-    const r = cmd === 'git' ? await git(REPO, ...args) : await gh(...args);
+    let r = cmd === 'git' ? await git(REPO, ...args) : await gh(...args);
+    if (what === "wait for GitHub's checks") {
+      for (let i = 0; i < CHECKS_START_TRIES && r.code !== 0 && noChecksYet(`${r.stderr} ${r.stdout}`); i++) {
+        log("GitHub has not started its checks yet, asking again…");
+        await sleep(CHECKS_START_PAUSE_MS);
+        r = await gh(...args);
+      }
+    }
     if (what === 'open the pull request') {
       // already open from an earlier try: use it
       pr = (r.stdout.match(/https:\/\/github\.com\/\S+\/pull\/\d+/) || (r.stderr.match(/https:\/\/github\.com\/\S+\/pull\/\d+/)) || [''])[0];

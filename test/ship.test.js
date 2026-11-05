@@ -40,6 +40,14 @@ test('release-note material lists what shipped this week by page, and says so wh
   assert.equal(notesMaterial([], 7), 'Nothing shipped in the last 7 days.');
 });
 
+test('"no checks reported" right after the pull request opens means not started yet; a real failure does not', async () => {
+  const { noChecksYet } = await import('../tools/ship.mjs');
+  assert.equal(noChecksYet("no checks reported on the 'crew/kv-001-hindi-back' branch"), true);
+  assert.equal(noChecksYet('X journeys  1m  https://github.com/x/y/actions/runs/1'), false);
+  assert.equal(noChecksYet(''), false);
+  assert.equal(noChecksYet(undefined), false);
+});
+
 test('it never releases into the live Kartavya repo, by name or by push address', async () => {
   const { targetProblem } = await import('../tools/ship.mjs');
   const sandbox = 'YashasviThakur/kartavya-crew-sandbox';
