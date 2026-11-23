@@ -12,6 +12,7 @@
     "setup": "node tools/setup.mjs",
     "ticket": "node tools/ticket.mjs",
     "check": "node tools/check.mjs",
+    "eval": "node eval/checker-eval.mjs",
     "health": "node tools/health.mjs",
     "notes": "node tools/notes.mjs",
     "ship": "node tools/ship.mjs",
