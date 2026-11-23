@@ -1,0 +1,299 @@
+{
+  "ranAt": "2026-11-23T05:19:52.315Z",
+  "defects": {
+    "caught": 10,
+    "of": 10
+  },
+  "files": {
+    "caught": 4,
+    "of": 4
+  },
+  "soft": {
+    "flagged": 3,
+    "of": 3
+  },
+  "clean": {
+    "passed": 7,
+    "of": 7
+  },
+  "cleanWarnings": 0,
+  "medianSeconds": 25,
+  "rows": [
+    {
+      "id": "D1",
+      "kind": "defect",
+      "what": "phone layout scrolls sideways",
+      "expected": "Layout on phone flags it",
+      "verdict": "fail",
+      "flagged": [
+        "Layout on phone:fail"
+      ],
+      "ok": true,
+      "seconds": 23
+    },
+    {
+      "id": "D2",
+      "kind": "defect",
+      "what": "new console error",
+      "expected": "Console and network errors flags it",
+      "verdict": "fail",
+      "flagged": [
+        "Console and network errors:fail"
+      ],
+      "ok": true,
+      "seconds": 20
+    },
+    {
+      "id": "D3",
+      "kind": "defect",
+      "what": "English line with no Hindi",
+      "expected": "Hindi flags it",
+      "verdict": "fail",
+      "flagged": [
+        "Hindi:fail"
+      ],
+      "ok": true,
+      "seconds": 29
+    },
+    {
+      "id": "D4",
+      "kind": "defect",
+      "what": "broken image",
+      "expected": "Layout on phone flags it",
+      "verdict": "fail",
+      "flagged": [
+        "Layout on phone:fail",
+        "Layout on desktop:fail",
+        "Console and network errors:fail"
+      ],
+      "ok": true,
+      "seconds": 29
+    },
+    {
+      "id": "D5",
+      "kind": "defect",
+      "what": "canonical tag removed",
+      "expected": "Search tags flags it",
+      "verdict": "fail",
+      "flagged": [
+        "Search tags:fail"
+      ],
+      "ok": true,
+      "seconds": 22
+    },
+    {
+      "id": "D6",
+      "kind": "defect",
+      "what": "meta description removed",
+      "expected": "Search tags flags it",
+      "verdict": "fail",
+      "flagged": [
+        "Search tags:fail"
+      ],
+      "ok": true,
+      "seconds": 26
+    },
+    {
+      "id": "D7",
+      "kind": "defect",
+      "what": "second main heading",
+      "expected": "Search tags flags it",
+      "verdict": "fail",
+      "flagged": [
+        "Search tags:fail"
+      ],
+      "ok": true,
+      "seconds": 27
+    },
+    {
+      "id": "D8",
+      "kind": "defect",
+      "what": "new image with no alt text",
+      "expected": "Search tags flags it",
+      "verdict": "fail",
+      "flagged": [
+        "Search tags:fail"
+      ],
+      "ok": true,
+      "seconds": 25
+    },
+    {
+      "id": "D9",
+      "kind": "defect",
+      "what": "structured data removed",
+      "expected": "Search tags flags it",
+      "verdict": "fail",
+      "flagged": [
+        "Search tags:fail"
+      ],
+      "ok": true,
+      "seconds": 25
+    },
+    {
+      "id": "D10",
+      "kind": "defect",
+      "what": "a request that fails (404)",
+      "expected": "Console and network errors flags it",
+      "verdict": "fail",
+      "flagged": [
+        "Console and network errors:fail"
+      ],
+      "ok": true,
+      "seconds": 18
+    },
+    {
+      "id": "S1",
+      "kind": "soft",
+      "what": "page gets 400 KB heavier",
+      "expected": "Page weight flags it",
+      "verdict": "pass",
+      "flagged": [
+        "Page weight:warn"
+      ],
+      "ok": true,
+      "seconds": 24
+    },
+    {
+      "id": "S2",
+      "kind": "soft",
+      "what": "a tap target smaller than a fingertip",
+      "expected": "Layout on phone flags it",
+      "verdict": "pass",
+      "flagged": [
+        "Layout on phone:warn"
+      ],
+      "ok": true,
+      "seconds": 25
+    },
+    {
+      "id": "S3",
+      "kind": "soft",
+      "what": "page title changed",
+      "expected": "Search tags flags it",
+      "verdict": "pass",
+      "flagged": [
+        "Search tags:warn"
+      ],
+      "ok": true,
+      "seconds": 26
+    },
+    {
+      "id": "F1",
+      "kind": "files",
+      "what": "touches a file the founder keeps out",
+      "expected": "Files changed flags it",
+      "verdict": "fail",
+      "flagged": [
+        "Files changed:fail"
+      ],
+      "ok": true,
+      "seconds": 0
+    },
+    {
+      "id": "F2",
+      "kind": "files",
+      "what": "a Claude co-author line in a commit",
+      "expected": "Files changed flags it",
+      "verdict": "fail",
+      "flagged": [
+        "Files changed:fail"
+      ],
+      "ok": true,
+      "seconds": 0
+    },
+    {
+      "id": "F3",
+      "kind": "files",
+      "what": "the branch changes nothing",
+      "expected": "Files changed flags it",
+      "verdict": "fail",
+      "flagged": [
+        "Files changed:fail"
+      ],
+      "ok": true,
+      "seconds": 0
+    },
+    {
+      "id": "F4",
+      "kind": "files",
+      "what": "a .env file is committed",
+      "expected": "Files changed flags it",
+      "verdict": "fail",
+      "flagged": [
+        "Files changed:fail"
+      ],
+      "ok": true,
+      "seconds": 0
+    },
+    {
+      "id": "C1",
+      "kind": "clean",
+      "what": "new paragraph, with Hindi",
+      "expected": "no failure",
+      "verdict": "pass",
+      "flagged": [],
+      "ok": true,
+      "seconds": 21
+    },
+    {
+      "id": "C2",
+      "kind": "clean",
+      "what": "no change at all",
+      "expected": "no failure",
+      "verdict": "pass",
+      "flagged": [],
+      "ok": true,
+      "seconds": 27
+    },
+    {
+      "id": "C3",
+      "kind": "clean",
+      "what": "new card that fits the phone, with Hindi",
+      "expected": "no failure",
+      "verdict": "pass",
+      "flagged": [],
+      "ok": true,
+      "seconds": 29
+    },
+    {
+      "id": "C4",
+      "kind": "clean",
+      "what": "harmless console.log",
+      "expected": "no failure",
+      "verdict": "pass",
+      "flagged": [],
+      "ok": true,
+      "seconds": 22
+    },
+    {
+      "id": "C5",
+      "kind": "clean",
+      "what": "new image with alt text",
+      "expected": "no failure",
+      "verdict": "pass",
+      "flagged": [],
+      "ok": true,
+      "seconds": 37
+    },
+    {
+      "id": "C6",
+      "kind": "clean",
+      "what": "new heading, with Hindi",
+      "expected": "no failure",
+      "verdict": "pass",
+      "flagged": [],
+      "ok": true,
+      "seconds": 34
+    },
+    {
+      "id": "C7",
+      "kind": "clean",
+      "what": "new full-size button link, with Hindi",
+      "expected": "no failure",
+      "verdict": "pass",
+      "flagged": [],
+      "ok": true,
+      "seconds": 19
+    }
+  ]
+}

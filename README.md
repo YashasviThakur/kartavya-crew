@@ -128,6 +128,22 @@ node tools/ship.mjs KV-001 --approved-by you --dry-run
 - **Switch Console note:** v0.40 fills `{params}` in a room's text but not in an agent's `instructions`, so the
   agent briefs use paths relative to each agent's folder (`../../tools/…`) and never a `{param}`; a test keeps it so.
 
+## Measured results: does the checker catch what it should?
+
+`npm run eval` runs [`eval/checker-eval.mjs`](eval/checker-eval.mjs): 24 small changes to a made-up copy of the Kartavya page, each checked
+in headless Chrome on phone and desktop. Raw rows are in [`eval/results/checker.json`](eval/results/checker.json). Run on 2026-11-23:
+
+| What was tried | Result |
+|---|---|
+| Real defects (sideways scroll, console error, English without Hindi, broken image, lost canonical / description / structured data, second main heading, image without alt, failing request) | **10 of 10 caught** (the check failed) |
+| File rules (a kept-out file, a `.env`, a Claude co-author line, an empty branch) | **4 of 4 caught** |
+| Soft problems (400 KB heavier page, tap target too small, title changed) | **3 of 3 flagged** as warnings, not failures |
+| Good fixes (new text with Hindi, a card that fits, a harmless `console.log`, an image with alt, no change) | **7 of 7 left alone**, no warnings |
+
+Median check time: 25 s per case. **What this does not show:** the defects are ones we seeded on a tiny page, so this measures the checker against
+known problems, not against real-world ones nobody listed. The first run was 23 of 24: one good fix was wrongly failed because our test page
+did not translate a `<div>`, a bug in the test, which we fixed and then reran in full.
+
 ## Limits
 
 - **The release step is a guardrail, not a sandbox.** The crew's copy of the site blocks pushes to the live repo (fetch-only remote, `pre-push` hook, `ship.mjs` refusal), but an agent with its own unscoped GitHub credentials outside that copy is not stopped by it.
