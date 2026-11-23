@@ -9,6 +9,8 @@ site's repo: the crew can read the live repo but never push to it.
 Built on [Switch](https://github.com/sandbox-quantum/switch) for the WeMakeDevs **Flip the Switch** hackathon
 (Track 1, Best Business Workflow).
 
+**[Watch the demo](https://youtu.be/toZ-3NnynIU)** · [Build story (Medium)](https://medium.com/@yashasvithakur0003/the-kartavya-crew-8ab9367cd50f) · [What has run, and what hasn't](#what-has-run-and-what-hasnt) · [Limits](#limits)
+
 ```
  founder: "@kv-triager the Care+ card text is cut off on my phone" + screenshot
     │
@@ -123,6 +125,14 @@ node tools/ship.mjs KV-001 --approved-by you --dry-run
   resume, threaded replies). It has not been registered on a live server yet.
 - **Switch Console note:** v0.40 fills `{params}` in a room's text but not in an agent's `instructions`, so the
   agent briefs use paths relative to each agent's folder (`../../tools/…`) and never a `{param}`; a test keeps it so.
+
+## Limits
+
+- **The release step is a guardrail, not a sandbox.** The crew's copy of the site blocks pushes to the live repo (fetch-only remote, `pre-push` hook, `ship.mjs` refusal), but an agent with its own unscoped GitHub credentials outside that copy is not stopped by it.
+- **Releasing through the room is untested live.** `@kv-shipper ship KV-001` has not been run in a live room. The same `ship.mjs` has, by hand.
+- **The watchdog is tested against a pretend server.** It speaks the real protocol, but has not been registered on a live Switch server.
+- **Checks are only as good as the site's own tests.** The checker measures layout, console errors, search tags, Hindi coverage, page weight, unit tests and journeys. It does not judge whether a fix is the right one; the owner does.
+- **Setup is heavy.** Console, Docker, Chrome, Claude Code and a signed-in GitHub CLI are all needed, and the full `npm test` (real headless-Chrome checks) takes several minutes.
 
 ## Layout
 
