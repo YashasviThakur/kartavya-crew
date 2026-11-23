@@ -122,7 +122,8 @@ export async function launch({ tmpRoot }) {
     try { ws.close(); } catch {}
     await sleep(300);
     try { proc.kill(); } catch {}
-    rmSync(profile, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 });
+    // Windows can keep the profile locked a little after Chrome exits; a leftover temp folder must not fail a passed check.
+    try { rmSync(profile, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 }); } catch {}
   }
   return { newPage, close };
 }
